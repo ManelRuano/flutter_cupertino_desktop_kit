@@ -4,6 +4,22 @@ import 'cdk_button_disclosure.dart';
 // Copyright © 2023 Albert Palacios. All Rights Reserved.
 // Licensed under the BSD 3-clause license, see LICENSE file for details.
 
+/// A disclosure widget in Flutter.
+///
+/// The [CDKUtilDisclosure] widget creates a disclosure UI pattern with an expandable
+/// or collapsible child content when interacting with a disclosure button.
+///
+/// ```dart
+/// CDKUtilDisclosure(
+///   title: Text('Title'),
+///   child: Container(
+///     // Your content here
+///   ),
+///   onChanged: (isExpanded) {
+///     // Handle disclosure state change
+///   },
+/// )
+/// ```
 class CDKUtilDisclosure extends StatefulWidget {
   final Widget title;
   final Widget child;
@@ -63,6 +79,8 @@ class CDKUtilDisclosureState extends State<CDKUtilDisclosure>
       children: [
         Row(
           children: [
+            // CDKButtonDisclosure is not defined in this snippet,
+            // assuming it's a disclosure button widget.
             CDKButtonDisclosure(
               value: _isExpanded,
               onChanged: (newValue) => _toggleDisclosure(),
@@ -75,7 +93,7 @@ class CDKUtilDisclosureState extends State<CDKUtilDisclosure>
           axis: Axis.vertical,
           axisAlignment: -1.0,
           child: SizedBox(
-              width: double.infinity, // Això estira el widget horitzontalment
+              width: double.infinity,
               child: widget.child),
         ),
       ],
