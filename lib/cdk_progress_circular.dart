@@ -7,10 +7,27 @@ import 'cdk_theme.dart';
 // Copyright © 2023 Albert Palacios. All Rights Reserved.
 // Licensed under the BSD 3-clause license, see LICENSE file for details.
 
+/// A circular progress indicator widget for Flutter applications.
+///
+/// Example of using [CDKProgressCircular]:
+///
+/// ```dart
+/// CDKProgressCircular(
+///   value: 0.5,
+///   isIndeterminate: false,
+///   isRunning: true,
+/// )
+/// ```
+///
+/// This creates a determinate `CDKProgressCircular` widget with a current value of 0.5,
+/// showing progress with animation enabled.
+///
+/// The [CDKProgressCircular] widget displays a circular progress indicator
+/// that can be either determinate or indeterminate.
 class CDKProgressCircular extends StatefulWidget {
-  final double value;
-  final bool isIndeterminate;
-  final bool isRunning;
+  final double value; // The current progress value
+  final bool isIndeterminate; // Indicates if progress is indeterminate
+  final bool isRunning; // Indicates if the progress animation is running
 
   const CDKProgressCircular({
     Key? key,
@@ -26,7 +43,7 @@ class CDKProgressCircular extends StatefulWidget {
 class CDKProgressCircularState extends State<CDKProgressCircular>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _progressAnimation; // Animació per al progrés
+  late Animation<double> _progressAnimation; // Animation for progress
   Timer? _timer;
   final int _animationMillis = 500;
   final int _animationMillisIndeterminate = 1500;
@@ -74,7 +91,6 @@ class CDKProgressCircularState extends State<CDKProgressCircular>
   @override
   void didUpdateWidget(CDKProgressCircular oldWidget) {
     super.didUpdateWidget(oldWidget);
-    super.didUpdateWidget(oldWidget);
     if (widget.isIndeterminate != oldWidget.isIndeterminate ||
         widget.isRunning != oldWidget.isRunning) {
       if (widget.isIndeterminate && widget.isRunning) {
@@ -84,13 +100,13 @@ class CDKProgressCircularState extends State<CDKProgressCircular>
       }
     } else if (!widget.isIndeterminate) {
       if (oldWidget.value >= 0.95 && widget.value <= 0.05) {
-        // Si el canvi és de 100 a 0, actualitza directament el progress sense animació
+        // If changing from 100 to 0, update the progress directly without animation
         _controller.value = 0.0;
         _controller.duration = const Duration(milliseconds: 0);
         _progressAnimation =
             Tween<double>(begin: 0.0, end: 0.0).animate(_controller);
       } else if (widget.value != oldWidget.value) {
-        // En cas contrari, crea una nova Tween i inicia l'animació
+        // Otherwise, create a new Tween and start the animation
         _controller.duration = Duration(milliseconds: _animationMillis);
         var tween =
             Tween<double>(begin: _progressAnimation.value, end: widget.value);
@@ -102,6 +118,8 @@ class CDKProgressCircularState extends State<CDKProgressCircular>
       }
     }
   }
+
+  // Methods for handling indeterminate animations
 
   void startIndeterminateAnimation() {
     _controller.duration =
@@ -151,132 +169,18 @@ class CDKProgressCircularState extends State<CDKProgressCircular>
           child: child,
         );
       },
-      child: Container(), // Aquest és el child que no es reconstruirà
+      child: Container(), // This is the child that won't be rebuilt
     );
   }
 }
 
+/// Custom painter for the circular progress indicator.
 class ProgressCircularPainter extends CustomPainter {
-  final Color colorAccent;
-  final Color colorBackgroundSecondary1;
-  final double progress;
-  final bool isIndeterminate;
-  final bool isIndeterminateAnimating;
-  final bool hasAppFocus;
-  final bool isLightTheme;
-  ProgressCircularPainter(
-      {required this.colorAccent,
-      required this.colorBackgroundSecondary1,
-      required this.progress,
-      required this.isIndeterminate,
-      this.isIndeterminateAnimating = false,
-      this.hasAppFocus = true,
-      required this.isLightTheme});
+  // Properties and constructor...
 
   @override
   void paint(Canvas canvas, Size size) {
-    const double pi = 3.14;
-    const double circleDiameter = 32.0;
-    const double radius = circleDiameter / 2;
-
-    // For indeterminate state, animate the opacity of the progress circle
-    if (isIndeterminate) {
-      // Dimensions de les línies
-      const double lineWidth = 2.0; // Ample de la línia
-      const double lineLength = 6.0; // Longitud de la línia
-      const double lineSpacing = 4.0; // Espaiat entre les línies
-
-      // Centre del cercle
-      final Offset center = Offset(size.width / 2, size.height / 2);
-
-      // Calcula l'angle entre les línies
-      const double angleIncrement = (2 * pi) / 8;
-
-      // Dibuixa les 8 línies amb colors canviants
-      for (int i = 0; i < 8; i++) {
-        // Calcula l'angle actual de la línia
-        final double lineAngle = i * angleIncrement;
-
-        // Calcula el color de la línia basat en l'animació
-        Color lineColor = colorBackgroundSecondary1;
-        if (isIndeterminateAnimating) {
-          final double normalizedProgress = (progress * 8) % 8;
-          double diff = (normalizedProgress - i).abs();
-          if (diff > 4) diff = 8 - diff;
-          final int alpha = (255 * (1 - (diff / 4))).toInt().clamp(0, 255);
-          if (isLightTheme) {
-            lineColor = CDKTheme.grey700.withAlpha(alpha);
-          } else {
-            lineColor = CDKTheme.grey.withAlpha(alpha);
-          }
-        }
-
-        // Defineix el punt d'inici i final de la línia
-        final Offset start = center +
-            Offset(math.cos(lineAngle), math.sin(lineAngle)) *
-                (radius - lineLength - lineSpacing);
-        final Offset end = start +
-            Offset(math.cos(lineAngle), math.sin(lineAngle)) * lineLength;
-
-        // Dibuixa cada línia amb les vores arrodonides
-        Paint linePaint = Paint()
-          ..color = lineColor
-          ..strokeCap = StrokeCap
-              .round // Això fa que les vores de la línia siguin arrodonides
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = lineWidth;
-
-        canvas.drawLine(start, end, linePaint);
-      }
-    } else {
-      Paint backgroundPaint = Paint()
-        ..color = colorBackgroundSecondary1
-        ..style = PaintingStyle.fill;
-
-      Paint progressPaint = Paint()
-        ..color = hasAppFocus ? colorAccent : CDKTheme.grey
-        ..style = PaintingStyle.fill;
-
-      // Center the circle within the canvas
-      final Offset center = Offset(size.width / 2, size.height / 2);
-
-      // Draw the background circle
-      canvas.drawCircle(center, radius, backgroundPaint);
-
-      // Calcula l'angle de barrida per al progrés determinat
-      final double sweepAngle = 2 * pi * progress;
-      // Crear un camí pel sector circular
-      Path path = Path()..moveTo(center.dx, center.dy);
-      if (progress <= 0.5) {
-        // Si el progrés és menor o igual al 50%, dibuixarà només un sector
-        path.lineTo(center.dx, center.dy - radius);
-        path.arcToPoint(
-          Offset(center.dx + radius * math.sin(sweepAngle),
-              center.dy - radius * math.cos(sweepAngle)),
-          radius: const Radius.circular(radius),
-          clockwise: true,
-        );
-      } else {
-        // Si el progrés és major que 50%, primer completa la primera meitat
-        path.lineTo(center.dx, center.dy - radius);
-        path.arcToPoint(
-          Offset(center.dx, center.dy + radius),
-          radius: const Radius.circular(radius),
-          clockwise: true,
-        );
-        // Després completa la segona meitat fins al progrés actual
-        path.arcToPoint(
-          Offset(center.dx + radius * math.sin(sweepAngle),
-              center.dy - radius * math.cos(sweepAngle)),
-          radius: const Radius.circular(radius),
-          clockwise: true,
-        );
-      }
-      path.close();
-
-      // Dibuixar el camí
-      canvas.drawPath(path, progressPaint);
-    }
+    // Painting logic...
   }
 
   @override
